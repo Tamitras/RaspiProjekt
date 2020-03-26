@@ -8,9 +8,9 @@ using System.Text;
 
 namespace MonitoreCore.Provider.DataProvider
 {
-    public class DataProvider : IDataProvider
+    public class RaspiProvider : IDataProvider
     {
-        public DataProvider()
+        public RaspiProvider()
         {
             this.Initialize();
 

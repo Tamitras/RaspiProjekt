@@ -23,7 +23,7 @@ namespace MonitoreCore
         static void Main(string[] args)
         {
             //WaitForDebuggingAttatched();
-            var dataProvider = new DataProvider();
+            var dataProvider = new RaspiProvider();
 
             Pi.Init<BootstrapWiringPi>();
 
