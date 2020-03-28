@@ -15,22 +15,10 @@ namespace MonitoreCore.Controllers
     /// </summary>
     [Route("")]
     [ApiController]
-    public class RaspiController : ControllerBase
+    public class MainController : ControllerBase
     {
-        private RaspiProvider raspiProvider;
-        private RaspiProvider RaspiProvider
-        {
-            get
-            {
-                return this.raspiProvider;
-            }
-            set
-            {
-                raspiProvider = new RaspiProvider();
-            }
-        }
-
-        private Log Logger => new Log(); 
+        private RaspiProvider RaspiProvider { get; set; } = new RaspiProvider();
+        private Log Logger { get; set; }
 
 
         /// <summary>
@@ -52,7 +40,7 @@ namespace MonitoreCore.Controllers
 
         /// <summary>
         /// Test Methode zum Testen der Funktionalität.
-        /// {IpAdress}:{port}/Main/Hello?ipAdress={"localhost"}&hostname={"Erik"}");
+        /// {IpAdress}:{port}/Main/Hello?ipAdress={"192.168."}&hostname={"Erik"}");
         /// </summary>
         /// <param name="ipAdress"></param>
         /// <param name="hostname"></param>
@@ -80,11 +68,29 @@ namespace MonitoreCore.Controllers
         [ActionName("GetChannel")]
         public string GetChannel(int channel)
         {
-            var value = this.RaspiProvider.GetAnalogDataFromSPI(channel);
+            //if (this.RaspiProvider == null)
+            //{
+            //    this.RaspiProvider = new RaspiProvider();
+            //}
 
-            this.Logger.WriteToConsole(value);
+            var value = this.RaspiProvider.GetAnalogDataFromSPI(channel, out var exception);
+
+            //this.Logger.WriteToConsole(value);
+
+            //if(exception.Length > 0)
+            //{
+            //    return exception;
+            //}
 
             return value.ToString();
+
+        }
+
+        [HttpGet("[controller]/[action]")]
+        [ActionName("SetGPIO")]
+        public bool SetGPIO(int pin, int value)
+        {
+           return this.RaspiProvider.WriteDititalData(pin, value);
         }
     }
 }

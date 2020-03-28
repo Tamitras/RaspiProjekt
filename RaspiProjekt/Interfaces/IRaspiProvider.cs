@@ -4,12 +4,12 @@ using System.Text;
 
 namespace MonitoreCore.Interfaces
 {
-    interface IDataProvider
+    interface IRaspiProvider
     {
-        int GetAnalogDataFromSPI(int channel);
+        int GetAnalogDataFromSPI(int channel, out string exception);
 
         bool GetDigitalData(int pin);
 
-        void WriteDititalData(int pin, bool value);
+        bool WriteDititalData(int pin, int value);
     }
 }

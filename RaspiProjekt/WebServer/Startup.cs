@@ -16,7 +16,6 @@ namespace MonitoreCore.WebServer
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -50,7 +49,6 @@ namespace MonitoreCore.WebServer
             app.UseStaticFiles();
             app.UseRouting();
             app.UseCors();
-
 
             app.UseEndpoints(endpoints =>
             {

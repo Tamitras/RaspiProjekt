@@ -7,16 +7,16 @@ namespace MonitoreCore.Debug
 {
     public class Log
     {
-        private Log logger;
-        public Log Logger
+        private static Log logger;
+        public static Log Logger
         {
             get
             {
+                if(logger == null)
+                {
+                    logger = new Log();
+                }
                 return logger;
-            }
-            set
-            {
-                logger = new Log();
             }
         }
 

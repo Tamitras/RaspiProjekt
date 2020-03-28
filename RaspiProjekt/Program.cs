@@ -9,10 +9,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Unosquare.RaspberryIO;
 using Unosquare.WiringPi;
+using Unosquare.WiringPi.Native;
 
 namespace MonitoreCore
 {
@@ -23,8 +25,6 @@ namespace MonitoreCore
         static void Main(string[] args)
         {
             //WaitForDebuggingAttatched();
-            var dataProvider = new RaspiProvider();
-
             Pi.Init<BootstrapWiringPi>();
 
             var keepMonitoring = true;
@@ -42,9 +42,124 @@ namespace MonitoreCore
             StartWebServer(args, port);
 
             // Temperaturüberwachung
-            StartTemperaturUeberwachung(keepMonitoring, IpAdress, port);
+            //StartTemperaturUeberwachung(keepMonitoring, IpAdress, port);
+
+            ReadGPIOPin();
 
             Console.ReadLine();
+        }
+
+        private static void ReadGPIOPin()
+        {
+            //var pin = 2; // Entspricht Pin Belegung 3 auf dem Raspi
+            var pin = 23; // Entspricht Pin Belegung 16 auf dem Raspi
+
+            if (Controller.IsPinOpen(pin))
+            {
+                Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+            }
+            else
+            {
+                Controller.OpenPin(pin);
+                Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+            }
+
+
+            while (false)
+            {
+                if (Controller.IsPinOpen(pin))
+                {
+                    WiringPi.DigitalWrite(pin, 1);
+                }
+                else
+                {
+                    Controller.OpenPin(pin);
+                    WiringPi.DigitalWrite(pin, 1);
+                }
+                Console.WriteLine("An");
+                Thread.Sleep(200);
+
+                if (Controller.IsPinOpen(pin))
+                {
+                    WiringPi.DigitalWrite(pin, 0);
+                }
+                else
+                {
+                    Controller.OpenPin(pin);
+                    WiringPi.DigitalWrite(pin, 0);
+                    Controller.ClosePin(pin);
+                }
+
+                Console.WriteLine("Aus");
+                Thread.Sleep(200);
+
+            }
+
+            //new Task(() =>
+            //{
+            while (true)
+            {
+                Console.WriteLine("Warte auf Eingabe");
+                var input = Console.ReadLine();
+
+                if (input.Equals("1"))
+                {
+
+                    if (Controller.IsPinOpen(pin))
+                    {
+                        Console.WriteLine("Pin ist geöffnet");
+                        Console.WriteLine("Pin Modus auf output gesetzt");
+                        Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+                        Console.WriteLine("Pin wird mit 1 beschrieben");
+                        WiringPi.DigitalWrite(pin, 1);
+                        Controller.Write(pin, 1);
+                    }
+                    else
+                    {
+
+                        Console.WriteLine("Pin wird geöffnet");
+                        Controller.OpenPin(pin);
+                        Console.WriteLine("Pin Modus auf output gesetzt");
+                        Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+                        Console.WriteLine("Pin wird mit 1 beschrieben");
+                        WiringPi.DigitalWrite(pin, 1);
+                        Controller.Write(pin, 1);
+                    }
+                }
+
+                if (input.Equals("0"))
+                {
+                    if (Controller.IsPinOpen(pin))
+                    {
+                        Console.WriteLine("Pin ist geöffnet");
+                        Console.WriteLine("Pin wird mit 0 beschrieben");
+                        WiringPi.DigitalWrite(pin, 0);
+                        Controller.Write(pin, 0);
+                        Console.WriteLine("Pin wird geschlossen");
+                        Controller.ClosePin(pin);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Pin geschlossen");
+                        Console.WriteLine("Pin wird geöffnet");
+                        Controller.OpenPin(pin);
+                        Console.WriteLine("Pin wird mit 0 beschrieben");
+                        WiringPi.DigitalWrite(pin, 0);
+                        Controller.Write(pin, 0);
+                        Console.WriteLine("Pin wird geschlossen");
+                        Controller.ClosePin(pin);
+                    }
+                }
+
+
+                if (input.Equals("x"))
+                {
+                    Console.WriteLine("Abgebrochen!!");
+                    break;
+                }
+                Thread.Sleep(1000);
+            }
+            //}).Start();
         }
 
         /// <summary>
@@ -142,6 +257,8 @@ namespace MonitoreCore
                     .UseEnvironment("ASPNETCORE_URLS")
                     .Build()
                     .Run();
+
+                    Console.WriteLine("WebServer started");
                 }
                 catch (Exception ex)
                 {

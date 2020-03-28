@@ -5,15 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Unosquare.WiringPi.Native;
 
 namespace MonitoreCore.Provider.DataProvider
 {
-    public class RaspiProvider : IDataProvider
+    public class RaspiProvider : IRaspiProvider
     {
+        public static System.Device.Gpio.GpioController Controller { get; set; } = new System.Device.Gpio.GpioController();
+
         public RaspiProvider()
         {
             this.Initialize();
-
         }
 
         private void Initialize()
@@ -21,9 +23,11 @@ namespace MonitoreCore.Provider.DataProvider
 
         }
 
-        public int GetAnalogDataFromSPI(int channel)
+        public int GetAnalogDataFromSPI(int channel, out string exception)
         {
             var value = default(object);
+            exception = default(string);
+
             try
             {
                 // Open the text file using a stream reader.
@@ -37,7 +41,9 @@ namespace MonitoreCore.Provider.DataProvider
             }
             catch (Exception ex)
             {
+                exception = ex.ToString();
                 Console.WriteLine($"Fehler: {ex}");
+
             }
 
             return Convert.ToInt32(value);
@@ -48,9 +54,29 @@ namespace MonitoreCore.Provider.DataProvider
             throw new NotImplementedException();
         }
 
-        public void WriteDititalData(int pin, bool value)
+        public bool WriteDititalData(int pin, int value)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (Controller.IsPinOpen(pin))
+                {
+                    Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+                    WiringPi.DigitalWrite(pin, value);
+                }
+                else
+                {
+
+                    Controller.OpenPin(pin);
+                    Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+                    WiringPi.DigitalWrite(pin, value);
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
