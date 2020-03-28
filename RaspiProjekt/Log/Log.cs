@@ -20,20 +20,22 @@ namespace MonitoreCore.Debug
             }
         }
 
-        public void WriteToConsole(string value)
+        public void WriteToConsole(string text, int value)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write(DateTime.Now + " ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"Ausgelesener Wert(Lichtsensor):{value}");
+
+            Console.WriteLine($"{text} {value}");
         }
 
-        public void WriteToConsole(int value)
+        public void WriteToConsole(string text, bool value)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write(DateTime.Now + " ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"Ausgelesener Wert(Lichtsensor):{value}");
+
+            Console.WriteLine($"{text} {value}");
         }
     }
 }

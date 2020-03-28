@@ -18,7 +18,7 @@ namespace MonitoreCore.Controllers
     public class MainController : ControllerBase
     {
         private RaspiProvider RaspiProvider { get; set; } = new RaspiProvider();
-        private Log Logger { get; set; }
+        private Log Logger { get; set; } = new Log();
 
 
         /// <summary>
@@ -68,29 +68,32 @@ namespace MonitoreCore.Controllers
         [ActionName("GetChannel")]
         public string GetChannel(int channel)
         {
-            //if (this.RaspiProvider == null)
-            //{
-            //    this.RaspiProvider = new RaspiProvider();
-            //}
-
             var value = this.RaspiProvider.GetAnalogDataFromSPI(channel, out var exception);
 
-            //this.Logger.WriteToConsole(value);
-
-            //if(exception.Length > 0)
-            //{
-            //    return exception;
-            //}
+            this.Logger.WriteToConsole("Ausgelesener Wert(LichtSensor): ", value);
 
             return value.ToString();
 
         }
 
         [HttpGet("[controller]/[action]")]
-        [ActionName("SetGPIO")]
+        [ActionName("SetGPIO")] 
         public bool SetGPIO(int pin, int value)
         {
-           return this.RaspiProvider.WriteDititalData(pin, value);
+            var ret = default(bool);
+
+            try
+            {
+                ret = this.RaspiProvider.WriteDititalData(pin, value);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Fehler: {ex}");
+            }
+
+            this.Logger.WriteToConsole($"Led-Status Pin: {pin}", value);
+
+            return ret;
         }
     }
 }

@@ -25,7 +25,7 @@ namespace MonitoreCore.Provider.DataProvider
 
         public int GetAnalogDataFromSPI(int channel, out string exception)
         {
-            var value = default(object);
+            var value = default(string);
             exception = default(string);
 
             try
@@ -43,10 +43,16 @@ namespace MonitoreCore.Provider.DataProvider
             {
                 exception = ex.ToString();
                 Console.WriteLine($"Fehler: {ex}");
-
             }
 
-            return Convert.ToInt32(value);
+            if (string.IsNullOrEmpty(value))
+            {
+                return 1337;
+            }
+            else
+            {
+                return Convert.ToInt32(value);
+            }
         }
 
         public bool GetDigitalData(int pin)
@@ -56,12 +62,14 @@ namespace MonitoreCore.Provider.DataProvider
 
         public bool WriteDititalData(int pin, int value)
         {
+            var pinset = false;
             try
             {
                 if (Controller.IsPinOpen(pin))
                 {
                     Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
                     WiringPi.DigitalWrite(pin, value);
+                    pinset = true;
                 }
                 else
                 {
@@ -69,6 +77,7 @@ namespace MonitoreCore.Provider.DataProvider
                     Controller.OpenPin(pin);
                     Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
                     WiringPi.DigitalWrite(pin, value);
+                    pinset = true;
                 }
             }
             catch (Exception ex)
@@ -76,7 +85,21 @@ namespace MonitoreCore.Provider.DataProvider
                 return false;
             }
 
-            return true;
+            if (pinset)
+            {
+                if (value == 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                throw new Exception($"Fehler bei setzen des Pins{pin}");
+            }
         }
     }
 }
