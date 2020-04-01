@@ -35,6 +35,9 @@ namespace MonitoreCore.Controllers
             Console.Write(DateTime.Now + " ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(text);
+
+            this.Logger.Add(Enum.LogType.Info, text);
+
             return text;
         }
 
@@ -68,30 +71,35 @@ namespace MonitoreCore.Controllers
         [ActionName("GetChannel")]
         public string GetChannel(int channel)
         {
-            var value = this.RaspiProvider.GetAnalogDataFromSPI(channel, out var exception);
+            var value = this.RaspiProvider.GetAnalogDataFromSPI(channel);
 
             this.Logger.WriteToConsole("Ausgelesener Wert(LichtSensor): ", value);
+            this.Logger.Add(Enum.LogType.Info, $"Channel {channel} wurde ausgelesen. Wert: {value}");
 
             return value.ToString();
 
         }
 
         [HttpGet("[controller]/[action]")]
-        [ActionName("SetGPIO")] 
+        [ActionName("SetGPIO")]
         public bool SetGPIO(int pin, int value)
         {
             var ret = default(bool);
 
             try
             {
-                ret = this.RaspiProvider.WriteDititalData(pin, value);
+                ret = this.RaspiProvider.WriteDigitalData(pin, value);
             }
             catch (Exception ex)
             {
+                this.Logger.WriteToConsole($"Led-Status fehlerhaft");
                 Console.WriteLine($"Fehler: {ex}");
             }
-
-            this.Logger.WriteToConsole($"Led-Status Pin: {pin}", value);
+            finally
+            {
+                this.Logger.WriteToConsole($"Led-Status Pin: {pin}", value);
+                this.Logger.Add(Enum.LogType.Info, $"Gpio Pin {pin} wurde angesprochen. Wert: {value}");
+            }
 
             return ret;
         }
