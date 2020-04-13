@@ -4,6 +4,7 @@ using MonitoreCore.Provider.DataProvider;
 using MonitoreCore.WebServer;
 using System;
 using System.Collections.Generic;
+using System.Device.Gpio;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,15 +23,15 @@ namespace MonitoreCore
     {
         public static System.Device.Gpio.GpioController Controller { get; set; } = new System.Device.Gpio.GpioController();
 
+        public static string IpAdress { get; set; }
+
         static void Main(string[] args)
         {
             //WaitForDebuggingAttatched();
             Pi.Init<BootstrapWiringPi>();
 
-            var keepMonitoring = true;
-            string IpAdress;
             int port;
-            Initialize(out IpAdress, out port);
+            IpAdress = Initialize(out port);
 
             // Enable only on Raspberry
             //GetRaspBiInformation();
@@ -54,14 +55,13 @@ namespace MonitoreCore
             //var pin = 2; // Entspricht Pin Belegung 3 auf dem Raspi
             var pin = 23; // Entspricht Pin Belegung 16 auf dem Raspi
 
-            if (Controller.IsPinOpen(pin))
-            {
-                Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
-            }
-            else
+            if (!Controller.IsPinOpen(pin))
             {
                 Controller.OpenPin(pin);
-                Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+                if (Controller.GetPinMode(pin) != PinMode.Output)
+                {
+                    Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+                }
             }
         }
 
@@ -121,16 +121,16 @@ namespace MonitoreCore
             return pins;
         }
 
-        private static void Initialize(out string IpAdress, out int port)
+        private static string Initialize(out int port)
         {
             var hostName = Dns.GetHostName();
-            IpAdress = "";
+            var ipAdress = "";
             port = 5000;
             if (hostName.Contains("rasp"))
             {
                 // raspberry
                 var ipAdressesRaw = GetIpAdressesByBashCommand("hostname -I");
-                IpAdress = GetIpAdressByRawIpAdresses(ipAdressesRaw);
+                ipAdress = GetIpAdressByRawIpAdresses(ipAdressesRaw);
             }
             else
             {
@@ -138,8 +138,10 @@ namespace MonitoreCore
                 var ip = $"http://localhost:{port}";
                 var adresses = Dns.GetHostAddresses(hostName);
                 var ipAdresses = adresses.Where(c => c.AddressFamily == AddressFamily.InterNetwork).ToList();
-                IpAdress = ipAdresses.FirstOrDefault().ToString();
+                ipAdress = ipAdresses.FirstOrDefault().ToString();
             }
+
+            return ipAdress;
         }
 
         private static void StartWebServer(string[] args, int port)

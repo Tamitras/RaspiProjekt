@@ -45,6 +45,7 @@ namespace MonitoreCore.Debug
             var basePath = "/home/pi/Logs/";
             var logFilePath = basePath + "Log";
             var saveFilePath = logFilePath + "_" + DateTime.Now;
+            msg += Environment.NewLine;
 
             try
             {
@@ -71,27 +72,25 @@ namespace MonitoreCore.Debug
                     if(fileInfo.CreationTime < DateTime.Today)
                     {
                         File.Move(logFilePath, saveFilePath);
-                        File.Create(logFilePath);
+                        File.Create(logFilePath).Dispose();
                     }
                 }
                 else
                 {
-                    File.Create(logFilePath);
+                    File.Create(logFilePath).Dispose();
                 }
 
-                using (StreamWriter sw = new StreamWriter(logFilePath))
-                {
                     var textToWrite = DateTime.Now + " ";
                     switch (logType)
                     {
                         case LogType.Info:
-                            textToWrite = LogType.Info.GetType().ToString();
+                            textToWrite += LogType.Info;
                             break;
                         case LogType.Warning:
-                            textToWrite = LogType.Warning.GetType().ToString();
+                            textToWrite += LogType.Warning;
                             break;
                         case LogType.Error:
-                            textToWrite = LogType.Error.GetType().ToString();
+                            textToWrite += LogType.Error;
                             break;
                         default:
                             break;
@@ -99,8 +98,7 @@ namespace MonitoreCore.Debug
 
                     textToWrite += " " + msg;
 
-                    sw.Write(textToWrite);
-                }
+                    File.AppendAllText(logFilePath, textToWrite);
             }
             catch (Exception ex)
             {
