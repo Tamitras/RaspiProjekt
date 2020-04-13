@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MonitoreCore.Debug;
+using MonitoreCore.Enum;
 using MonitoreCore.Provider.DataProvider;
 using System;
-using System.Runtime.CompilerServices;
 
 namespace MonitoreCore.Controllers
 {
@@ -20,6 +20,10 @@ namespace MonitoreCore.Controllers
         private RaspiProvider RaspiProvider { get; set; } = new RaspiProvider();
         private Log Logger { get; set; } = new Log();
 
+        private string GetAppVersion()
+        {
+            return GetType().Assembly.GetName().Version.ToString();
+        }
 
         /// <summary>
         /// Test Methode zum Testen der Funktionalität
@@ -30,13 +34,13 @@ namespace MonitoreCore.Controllers
         [HttpGet("[controller]/[action]")] // Matches '/Main/Register'
         public string Register()
         {
-            var text = $"Herzlich Willkommen auf dem Server von Erik";
+            var text = $"Herzlich Willkommen auf dem Server v.{this.GetAppVersion()}";
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write(DateTime.Now + " ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(text);
 
-            this.Logger.Add(Enum.LogType.Info, text);
+            this.Logger.Add(LogType.Info, text);
 
             return text;
         }
@@ -74,7 +78,7 @@ namespace MonitoreCore.Controllers
             var value = this.RaspiProvider.GetAnalogDataFromSPI(channel);
 
             this.Logger.WriteToConsole("Ausgelesener Wert(LichtSensor): ", value);
-            this.Logger.Add(Enum.LogType.Info, $"Channel {channel} wurde ausgelesen. Wert: {value}");
+            this.Logger.Add(LogType.Info, $"Channel {channel} wurde ausgelesen. Wert: {value}");
 
             return value.ToString();
 

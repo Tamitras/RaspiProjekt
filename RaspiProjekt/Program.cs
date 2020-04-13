@@ -63,103 +63,6 @@ namespace MonitoreCore
                 Controller.OpenPin(pin);
                 Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
             }
-
-
-            while (false)
-            {
-                if (Controller.IsPinOpen(pin))
-                {
-                    WiringPi.DigitalWrite(pin, 1);
-                }
-                else
-                {
-                    Controller.OpenPin(pin);
-                    WiringPi.DigitalWrite(pin, 1);
-                }
-                Console.WriteLine("An");
-                Thread.Sleep(200);
-
-                if (Controller.IsPinOpen(pin))
-                {
-                    WiringPi.DigitalWrite(pin, 0);
-                }
-                else
-                {
-                    Controller.OpenPin(pin);
-                    WiringPi.DigitalWrite(pin, 0);
-                    Controller.ClosePin(pin);
-                }
-
-                Console.WriteLine("Aus");
-                Thread.Sleep(200);
-
-            }
-
-            //new Task(() =>
-            //{
-            while (true)
-            {
-                Console.WriteLine("Warte auf Eingabe");
-                var input = Console.ReadLine();
-
-                if (input.Equals("1"))
-                {
-
-                    if (Controller.IsPinOpen(pin))
-                    {
-                        Console.WriteLine("Pin ist geöffnet");
-                        Console.WriteLine("Pin Modus auf output gesetzt");
-                        Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
-                        Console.WriteLine("Pin wird mit 1 beschrieben");
-                        WiringPi.DigitalWrite(pin, 1);
-                        Controller.Write(pin, 1);
-                    }
-                    else
-                    {
-
-                        Console.WriteLine("Pin wird geöffnet");
-                        Controller.OpenPin(pin);
-                        Console.WriteLine("Pin Modus auf output gesetzt");
-                        Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
-                        Console.WriteLine("Pin wird mit 1 beschrieben");
-                        WiringPi.DigitalWrite(pin, 1);
-                        Controller.Write(pin, 1);
-                    }
-                }
-
-                if (input.Equals("0"))
-                {
-                    if (Controller.IsPinOpen(pin))
-                    {
-                        Console.WriteLine("Pin ist geöffnet");
-                        Console.WriteLine("Pin wird mit 0 beschrieben");
-                        WiringPi.DigitalWrite(pin, 0);
-                        Controller.Write(pin, 0);
-                        Console.WriteLine("Pin wird geschlossen");
-                        Controller.ClosePin(pin);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Pin geschlossen");
-                        Console.WriteLine("Pin wird geöffnet");
-                        Controller.OpenPin(pin);
-                        Console.WriteLine("Pin wird mit 0 beschrieben");
-                        WiringPi.DigitalWrite(pin, 0);
-                        Controller.Write(pin, 0);
-                        Console.WriteLine("Pin wird geschlossen");
-                        Controller.ClosePin(pin);
-                    }
-                }
-
-
-                if (input.Equals("x"))
-                {
-                    Console.WriteLine("Abgebrochen!!");
-                    break;
-                }
-                Thread.Sleep(1000);
-            }
-            //}).Start();
         }
 
         /// <summary>
@@ -245,6 +148,7 @@ namespace MonitoreCore
             {
                 try
                 {
+                    Console.WriteLine("WebServer starting");
                     WebHost.CreateDefaultBuilder(args)
                     .UseStartup<Startup>()
 
@@ -258,11 +162,10 @@ namespace MonitoreCore
                     .Build()
                     .Run();
 
-                    Console.WriteLine("WebServer started");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"EXCEPTION: {ex.Message}");
+                    Console.WriteLine($"Server bereits gestartet :)");
                     throw ex;
                 }
             });
@@ -373,35 +276,6 @@ namespace MonitoreCore
 
                 }
             }).Start();
-        }
-
-        private static void GetRaspBiInformation()
-        {
-            Console.WriteLine("Informationen über den Raspi");
-
-            Console.WriteLine($"BoardModel: {Pi.Info.BoardModel}");
-            Console.WriteLine($"BoardRevision: {Pi.Info.BoardRevision}");
-            Console.WriteLine($"CpuArchitecture: {Pi.Info.CpuArchitecture}");
-            Console.WriteLine($"CpuImplementer: {Pi.Info.CpuImplementer}");
-            Console.WriteLine($"CpuPart: {Pi.Info.CpuPart}");
-            Console.WriteLine($"CpuRevision: {Pi.Info.CpuRevision}");
-            Console.WriteLine($"CpuVariant: {Pi.Info.CpuVariant}");
-            Console.WriteLine($"Hardware: {Pi.Info.Hardware}");
-            Console.WriteLine($"InstalledRam: {Pi.Info.InstalledRam}");
-            Console.WriteLine($"IsLittleEndian: {Pi.Info.IsLittleEndian}");
-            Console.WriteLine($"LibraryVersion: {Pi.Info.LibraryVersion}");
-            Console.WriteLine($"Manufacturer: {Pi.Info.Manufacturer}");
-            Console.WriteLine($"ModelName: {Pi.Info.ModelName}");
-            Console.WriteLine($"MemorySize: {Pi.Info.MemorySize}");
-            Console.WriteLine($"OperatingSystem: {Pi.Info.OperatingSystem}");
-            Console.WriteLine($"ProcessorCount: {Pi.Info.ProcessorCount}");
-            Console.WriteLine($"ProcessorModel: {Pi.Info.ProcessorModel}");
-            Console.WriteLine($"RaspberryPiVersion: {Pi.Info.RaspberryPiVersion}");
-            Console.WriteLine($"Revision: {Pi.Info.Revision}");
-            Console.WriteLine($"RevisionNumber: {Pi.Info.RevisionNumber}");
-            Console.WriteLine($"Serial: {Pi.Info.Serial}");
-            Console.WriteLine($"Uptime: {Pi.Info.Uptime}");
-            Console.WriteLine($"UptimeTimeSpan: {Pi.Info.UptimeTimeSpan}");
         }
     }
 }

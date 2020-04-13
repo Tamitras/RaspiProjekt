@@ -4,9 +4,34 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <SshDeployHost>192.168.0.53</SshDeployHost>
+    <SshDeployClean />
+    <SshDeployTargetPath>/home/pi/DeployedFiles</SshDeployTargetPath>
+    <SshDeployUsername>pi</SshDeployUsername>
+    <SshDeployPassword>Kleinprojekt</SshDeployPassword>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RemoteHost>192.168.0.42</RemoteHost>
+    <SourcePath>D:\Development\Git\RaspiProjekt\RaspiProjekt\bin\Debug</SourcePath>
+    <RemoteTargetPath>/home/pi/DeployedFiles</RemoteTargetPath>
+    <RemoteUsername>pi</RemoteUsername>
+    <RemotePassword>Kleinprojekt</RemotePassword>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.1.2</Version>
+    <AssemblyVersion>1.1.2.2</AssemblyVersion>
+    <FileVersion>1.1.2.2</FileVersion>
+  </PropertyGroup>
+
+  <Target Condition="$(BuildingInsideSshDeploy) == '' and $(RuntimeIdentifier) == 'linux-arm'" Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="" />
+    <Exec Command="dotnet-sshdeploy push -r $(RuntimeIdentifier)" />
+  </Target>
 
   <ItemGroup>
-    <PackageReference Include="IronPython" Version="2.7.9" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="3.1.2" />

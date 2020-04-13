@@ -1,6 +1,4 @@
-﻿using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
-using MonitoreCore.Debug;
+﻿using MonitoreCore.Debug;
 using MonitoreCore.Enum;
 using MonitoreCore.Interfaces;
 using System;
@@ -19,7 +17,7 @@ namespace MonitoreCore.Provider.DataProvider
         public static GpioController Controller { get; set; } = new GpioController();
         private Log Logger { get; set; } = new Log();
 
-        private TimeSpan PumpenIntervall { get; set; } = new TimeSpan();
+        private TimeSpan PumpenIntervallTimeSpan { get; set; } = new TimeSpan();
 
         /// <summary>
         /// Pin der Pumpe wird auf X gesetzt - Readonly
@@ -30,24 +28,23 @@ namespace MonitoreCore.Provider.DataProvider
         {
         }
 
-        private void SetPumpenIntervall(EnumPumpenIntervall intervall)
+        private void SetPumpenIntervall(PumpenIntervall intervall)
         {
             switch (intervall)
             {
-                case EnumPumpenIntervall.Kurz:
-                    this.PumpenIntervall = new TimeSpan(0, 0, 10); // Stunden, Minuten, Sekunden
+                case PumpenIntervall.Kurz:
+                    this.PumpenIntervallTimeSpan = new TimeSpan(0, 0, 10); // Stunden, Minuten, Sekunden
                     break;
-                case EnumPumpenIntervall.Mittel:
-                    this.PumpenIntervall = new TimeSpan(0, 0, 20); // Stunden, Minuten, Sekunden
+                case PumpenIntervall.Mittel:
+                    this.PumpenIntervallTimeSpan = new TimeSpan(0, 0, 20); // Stunden, Minuten, Sekunden
                     break;
-                case EnumPumpenIntervall.Lang:
-                    this.PumpenIntervall = new TimeSpan(0, 0, 30); // Stunden, Minuten, Sekunden
+                case PumpenIntervall.Lang:
+                    this.PumpenIntervallTimeSpan = new TimeSpan(0, 0, 30); // Stunden, Minuten, Sekunden
                     break;
                 default:
                     break;
             }
         }
-
 
         public int GetAnalogDataFromSPI(int channel)
         {
@@ -112,7 +109,7 @@ namespace MonitoreCore.Provider.DataProvider
             }
         }
 
-        public void WasserMarsch(EnumPumpenIntervall intervall, out string message)
+        public void WasserMarsch(PumpenIntervall intervall, out string message)
         {
             message = string.Empty;
 
@@ -126,7 +123,7 @@ namespace MonitoreCore.Provider.DataProvider
             }
         }
 
-        private void StartEngine(EnumPumpenIntervall intervall)
+        private void StartEngine(PumpenIntervall intervall)
         {
             // Öffnet den Pin und setzt ihn auf den Modus <Output>
             this.OpenPinAndSetModeToOutput(this.PumpenPin);
@@ -149,7 +146,7 @@ namespace MonitoreCore.Provider.DataProvider
 
         private TimeSpan GetPumpenIntervall()
         {
-            return this.PumpenIntervall;
+            return this.PumpenIntervallTimeSpan;
         }
 
         public void TimerBeended(object state)

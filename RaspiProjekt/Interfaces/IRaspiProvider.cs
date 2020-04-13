@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MonitoreCore.Enum;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -33,6 +34,6 @@ namespace MonitoreCore.Interfaces
         /// </summary>
         /// <param name="intervall">Länge der Bewässerung</param>
         /// <returns>Zeitsperre bis zum nächsten Bewässern</returns>
-        void WasserMarsch(int intervall, out string message);
+        void WasserMarsch(PumpenIntervall intervall, out string message);
     }
 }
