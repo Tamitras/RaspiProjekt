@@ -34,7 +34,7 @@ namespace MonitoreCore.Controllers
         [HttpGet("[controller]/[action]")] // Matches '/Main/Register'
         public string Register()
         {
-            var text = $"Herzlich Willkommen auf dem Server v.{this.GetAppVersion()}";
+            var text = $"Bewässerungs-App betriebsbereit v.{this.GetAppVersion()}";
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write(DateTime.Now + " ");
             Console.ForegroundColor = ConsoleColor.White;

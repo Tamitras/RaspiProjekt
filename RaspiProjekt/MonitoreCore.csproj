@@ -6,7 +6,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <SshDeployHost>192.168.0.53</SshDeployHost>
+    <SshDeployHost>192.168.0.60</SshDeployHost>
     <SshDeployClean />
     <SshDeployTargetPath>/home/pi/DeployedFiles</SshDeployTargetPath>
     <SshDeployUsername>pi</SshDeployUsername>
@@ -22,8 +22,8 @@
     <RemotePassword>Kleinprojekt</RemotePassword>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.1.2</Version>
-    <AssemblyVersion>1.1.2.2</AssemblyVersion>
-    <FileVersion>1.1.2.2</FileVersion>
+    <AssemblyVersion>1.1.2.3</AssemblyVersion>
+    <FileVersion>1.1.2.3</FileVersion>
   </PropertyGroup>
 
   <Target Condition="$(BuildingInsideSshDeploy) == '' and $(RuntimeIdentifier) == 'linux-arm'" Name="PostBuild" AfterTargets="PostBuildEvent">

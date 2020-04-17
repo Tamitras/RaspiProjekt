@@ -7,3 +7,4 @@
 # Add Environment Variable => "C:\Users\Eriktion\.dotnet\tools\dotnet-sshdeploy.exe"
 
 dotnet-sshdeploy push -c Debug
+pause
