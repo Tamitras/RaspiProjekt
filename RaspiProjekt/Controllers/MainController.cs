@@ -107,5 +107,23 @@ namespace MonitoreCore.Controllers
 
             return ret;
         }
+
+        [HttpGet("[controller]/[action]")]
+        [ActionName("SetAutomaticModePump")]
+        public bool SetAutomaticModePump(int value)
+        {
+            var ret = default(bool);
+
+            try
+            {
+                //ret = this.RaspiProvider.WriteDigitalData(pin, value);
+            }
+            catch (Exception ex)
+            {
+                this.Logger.WriteToConsole($"Fehler: {ex.Message}");
+            }
+
+            return ret;
+        }
     }
 }

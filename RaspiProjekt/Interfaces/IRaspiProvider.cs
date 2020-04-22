@@ -15,13 +15,6 @@ namespace MonitoreCore.Interfaces
         int GetAnalogDataFromSPI(int channel);
 
         /// <summary>
-        /// Noch nicht implementiert
-        /// </summary>
-        /// <param name="pin"></param>
-        /// <returns></returns>
-        bool GetDigitalData(int pin);
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="pin"></param>
@@ -30,10 +23,10 @@ namespace MonitoreCore.Interfaces
         bool WriteDigitalData(int pin, int value);
 
         /// <summary>
-        /// Steuert die Pumpe an und lässt das Gießen beginnen.
+        /// Setzt den Automatischen Modus für die Pumpe
         /// </summary>
-        /// <param name="intervall">Länge der Bewässerung</param>
-        /// <returns>Zeitsperre bis zum nächsten Bewässern</returns>
-        void WasserMarsch(PumpenIntervall intervall, out string message);
+        /// <param name="value"></param>
+        /// <returns></returns>
+        bool SetAutomaticModePump(int value);
     }
 }

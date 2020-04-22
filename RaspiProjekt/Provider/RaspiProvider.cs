@@ -48,7 +48,6 @@ namespace MonitoreCore.Provider.DataProvider
 
         public int GetAnalogDataFromSPI(int channel)
         {
-            var value = default(string);
             var ret = default(int);
 
             // @Erik - Diese Methode nochmal anschauen
@@ -61,7 +60,7 @@ namespace MonitoreCore.Provider.DataProvider
                 using (StreamReader sr = new StreamReader($"/home/pi/ErikPython/Channel{channel}.txt"))
                 {
                     // Read the stream to a string, and write the string to the console.
-                    value = sr.ReadToEnd();
+                    string value = sr.ReadToEnd();
 
                     if (string.IsNullOrEmpty(value))
                     {
@@ -79,11 +78,6 @@ namespace MonitoreCore.Provider.DataProvider
             }
 
             return ret;
-        }
-
-        public bool GetDigitalData(int pin)
-        {
-            throw new NotImplementedException();
         }
 
         public bool WriteDigitalData(int pin, int value)
@@ -109,7 +103,7 @@ namespace MonitoreCore.Provider.DataProvider
             }
         }
 
-        public void WasserMarsch(PumpenIntervall intervall, out string message)
+        private void WasserMarsch(PumpenIntervall intervall, out string message)
         {
             message = string.Empty;
 
@@ -196,6 +190,32 @@ namespace MonitoreCore.Provider.DataProvider
                 Controller.OpenPin(pin);
                 Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
             }
+        }
+
+        public bool SetAutomaticModePump(int value)
+        {
+
+            // 1. Prüft ob Pumpe bereits läuft
+            // Ja => Liefere false (bool) und einen string als Antwort warum Pumpe nicht in den AUtomatic mOdus gesetzt werden kann
+            // Nein ==> Mache weiter mit 2.
+
+            //2. Prüfe den Helligkeitssensor
+            // Ist Wert > X  ==> HELL ==> Liefere False(bool) und einen string als Antwort ==>  Viel zu Hell zum Gießen
+            // Ist Wert < Y ==> DUNKEL ==> PreCondition-Check OK ==>
+
+            //3. Prüfe den Feuchtigkeitssensor
+            // Ist Wert X ==> Trocken ==> PreconditionCheck OK ==> Intervall.Lang
+            // Ist Wert Y ==> Feucht ==> PreconditionCheck OK ==> Intervall.Kurz
+            // Ist Wert Z ==> Nass ==> PreconditionCheck NICHT OK ==> Kein Intervall
+
+            //4 Prüfe die Conditions
+            // if(2 == true && 3 == true)
+            //{
+                this.WasserMarsch(PumpenIntervall.Lang, out var message);
+            //}
+
+
+            return true;
         }
     }
 }
