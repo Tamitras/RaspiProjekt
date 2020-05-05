@@ -19,7 +19,7 @@ namespace MonitoreCore.Interfaces
         /// </summary>
         /// <param name="pin"></param>
         /// <returns></returns>
-        bool GetDigitalData(int pin);
+        //bool GetDigitalData(int pin);
 
         /// <summary>
         /// 
@@ -29,11 +29,5 @@ namespace MonitoreCore.Interfaces
         /// <returns></returns>
         bool WriteDigitalData(int pin, int value);
 
-        /// <summary>
-        /// Steuert die Pumpe an und lässt das Gießen beginnen.
-        /// </summary>
-        /// <param name="intervall">Länge der Bewässerung</param>
-        /// <returns>Zeitsperre bis zum nächsten Bewässern</returns>
-        void WasserMarsch(PumpenIntervall intervall, out string message);
     }
 }

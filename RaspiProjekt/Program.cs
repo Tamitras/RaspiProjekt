@@ -33,17 +33,8 @@ namespace MonitoreCore
             int port;
             IpAdress = Initialize(out port);
 
-            // Enable only on Raspberry
-            //GetRaspBiInformation();
-
-            //GetGpioInfo();
-
-
             // WebServer
             StartWebServer(args, port);
-
-            // Temperaturüberwachung
-            //StartTemperaturUeberwachung(keepMonitoring, IpAdress, port);
 
             ReadGPIOPin();
 
@@ -77,48 +68,6 @@ namespace MonitoreCore
                 Thread.Sleep(100);
             }
             Console.WriteLine("Debugger attached");
-        }
-
-        private static void GetGpioInfo()
-        {
-            var pinCount = Controller.PinCount;
-            Console.WriteLine($"PinCount: {pinCount}");
-
-            //GetAndReadAllPins();
-            Console.WriteLine(Pi.Info);
-        }
-
-        private static List<int> GetAndReadAllPins()
-        {
-            var pins = new List<int>();
-            for (int i = 0; i < 28; i++)
-            {
-                pins.Add(i);
-            }
-
-            foreach (var pin in pins)
-            {
-                try
-                {
-                    if (Controller.IsPinOpen(pin))
-                    {
-                        var val = Controller.Read(pin);
-                        Console.WriteLine($"Pin<{pin + 1}> geöffnet. Value: {val}");
-                    }
-                    else
-                    {
-                        //Controller.OpenPin(pin, PinMode.Input);
-                        var val = Controller.Read(pin);
-                        Console.WriteLine($"Pin<{pin + 1}> geschlossen - wird geöffnet. Value: {val}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Fehler bei Pin: {pin + 1}: {ex}");
-                }
-            }
-
-            return pins;
         }
 
         private static string Initialize(out int port)
@@ -175,30 +124,6 @@ namespace MonitoreCore
             t.Start();
         }
 
-        private static void StartTemperaturUeberwachung(bool keepMonitoring, string IpAdress, int port)
-        {
-            var t2 = new Task(() =>
-            {
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Thread.Sleep(2500);
-                Console.WriteLine("-------------------------------------------------");
-                Thread.Sleep(1500);
-                Console.WriteLine($"Reachable at: {IpAdress}:{port}");
-                Thread.Sleep(1500);
-                Console.WriteLine($"For Example : {IpAdress}:{port}/Main/Register");
-                Thread.Sleep(1500);
-                Console.WriteLine($"For Example : {IpAdress}:{port}/Main/Hello?ipAdress={"localhost"}&hostname={"Erik"}");
-                Thread.Sleep(1500);
-                Console.WriteLine($"For Example : {IpAdress}:{port}/Main/GetChannel?Channel={"0"}");
-                Console.WriteLine("-------------------------------------------------");
-                Console.ForegroundColor = ConsoleColor.White;
-
-                ShowsTemperatureInConsole(keepMonitoring);
-            });
-
-            t2.Start();
-        }
-
         private static string GetIpAdressByRawIpAdresses(string ipAdressesRaw)
         {
             var ipAdress = ipAdressesRaw.Split(" ").FirstOrDefault();
@@ -229,55 +154,6 @@ namespace MonitoreCore
             string result = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
             return result;
-        }
-
-        private static void ShowsTemperatureInConsole(bool keepMonitoring)
-        {
-            new Task(() =>
-            {
-                // Get Temperature
-                string path = @"/sys/class/thermal/thermal_zone0/temp";
-
-                while (keepMonitoring)
-                {
-                    Thread.Sleep(2000);
-
-                    if (!File.Exists(path))
-                    {
-                        Console.WriteLine("Could not find " + path);
-                    }
-                    else
-                    {
-                        string readText = File.ReadAllText(path);
-                        if (Double.TryParse(readText, out Double temp))
-                        {
-                            if ((temp / 1000) >= 28 && (temp / 1000) < 30)
-                            {
-                                Console.ForegroundColor = ConsoleColor.Yellow;
-                            }
-                            else if ((temp / 1000) >= 30 && (temp / 1000) < 32)
-                            {
-                                Console.ForegroundColor = ConsoleColor.Red;
-                            }
-                            else if ((temp / 1000) >= 32)
-                            {
-                                Console.ForegroundColor = ConsoleColor.DarkRed;
-                            }
-                            else
-                            {
-                                Console.ForegroundColor = ConsoleColor.White;
-                            }
-
-                            Console.WriteLine($"CPU Tempteratur: {temp / 1000}°C");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Parsing hat nicht funktioniert :/");
-                        }
-                    }
-
-                }
-            }).Start();
         }
     }
 }

@@ -40,7 +40,7 @@ namespace MonitoreCore.Debug
             Console.WriteLine($"{text} {value}");
         }
 
-        public void Add(LogType logType, string msg)
+        public void WriteToFile(LogType logType, string msg)
         {
             var basePath = "/home/pi/Logs/";
             var logFilePath = basePath + "Log";

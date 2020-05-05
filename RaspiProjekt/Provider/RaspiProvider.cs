@@ -7,6 +7,8 @@ using System.Device.Gpio;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
 using Unosquare.RaspberryIO;
 using Unosquare.WiringPi.Native;
 
@@ -17,32 +19,68 @@ namespace MonitoreCore.Provider.DataProvider
         public static GpioController Controller { get; set; } = new GpioController();
         private Log Logger { get; set; } = new Log();
 
-        private TimeSpan PumpenIntervallTimeSpan { get; set; } = new TimeSpan();
+        private static bool AutoMode { get; set; } = true;
 
-        /// <summary>
-        /// Pin der Pumpe wird auf X gesetzt - Readonly
-        /// </summary>
-        private int PumpenPin { get; } = 0;
+        private static System.Timers.Timer MyTimer { get; set; } = new System.Timers.Timer(20000);
 
         public RaspiProvider()
         {
+            MyTimer.Elapsed += MyTimer_Elapsed;
         }
 
-        private void SetPumpenIntervall(PumpenIntervall intervall)
+        private void MyTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            switch (intervall)
+            Console.WriteLine($"{DateTime.Now}: Automatik Modus Prüfung");
+            Console.WriteLine($"{DateTime.Now}: Automode: <{AutoMode}>");
+            if (AutoMode)
             {
-                case PumpenIntervall.Kurz:
-                    this.PumpenIntervallTimeSpan = new TimeSpan(0, 0, 10); // Stunden, Minuten, Sekunden
-                    break;
-                case PumpenIntervall.Mittel:
-                    this.PumpenIntervallTimeSpan = new TimeSpan(0, 0, 20); // Stunden, Minuten, Sekunden
-                    break;
-                case PumpenIntervall.Lang:
-                    this.PumpenIntervallTimeSpan = new TimeSpan(0, 0, 30); // Stunden, Minuten, Sekunden
-                    break;
-                default:
-                    break;
+                this.StartAutoMode();
+            }
+        }
+
+        private void StartAutoMode()
+        {
+            int lichtwert = this.GetAnalogDataFromSPI(0);
+            int feuchtigkeitswert = this.GetAnalogDataFromSPI(1);
+            int pumpenPinWert = this.GetPumpenPinStatus();
+
+            bool lichtIO = false;
+            bool feuchtigkeitIO = false;
+            bool pumpenStatusIO = false;
+
+            if (lichtwert > 20000)
+            {
+                lichtIO = true;
+            }
+            if (feuchtigkeitswert > 50000 && feuchtigkeitswert != 1337)
+            {
+                feuchtigkeitIO = true;
+            }
+            if (pumpenPinWert == 0)
+            {
+                pumpenStatusIO = true;
+            }
+
+            if (lichtIO && feuchtigkeitIO && pumpenStatusIO)
+            {
+                this.PumpeAn();
+            }
+            else
+            {
+                Console.WriteLine("Pumpe nicht angesteuert, weil:");
+
+                if (!lichtIO)
+                {
+                    Console.WriteLine("Lichtwert zu Hell");
+                }
+                if (!feuchtigkeitIO)
+                {
+                    Console.WriteLine("Feuchtigkeit zu Nass");
+                }
+                if (!pumpenStatusIO)
+                {
+                    Console.WriteLine("Pumpe läuft bereits");
+                }
             }
         }
 
@@ -50,10 +88,6 @@ namespace MonitoreCore.Provider.DataProvider
         {
             var value = default(string);
             var ret = default(int);
-
-            // @Erik - Diese Methode nochmal anschauen
-            // Eventuell die Werte in eine Datei stecken und nicht jeden Channel in eine extra Datei
-            // Python Script anpassen
 
             try
             {
@@ -81,18 +115,18 @@ namespace MonitoreCore.Provider.DataProvider
             return ret;
         }
 
-        public bool GetDigitalData(int pin)
-        {
-            throw new NotImplementedException();
-        }
-
+        /// <summary>
+        /// Setz den Wert des Pins und somit High oder Low
+        /// </summary>
+        /// <param name="pin"></param>
+        /// <param name="value"></param>
         public bool WriteDigitalData(int pin, int value)
         {
-            // @Erik Diese Methode muss ich mir nochmal anschauen 
             try
             {
                 this.OpenPinAndSetModeToOutput(pin);
                 WiringPi.DigitalWrite(pin, value);
+                AutoMode = false;
 
                 if (value == 1)
                 {
@@ -105,87 +139,21 @@ namespace MonitoreCore.Provider.DataProvider
             }
             catch (Exception ex)
             {
-                throw ex;
+                this.Logger.WriteToFile(LogType.Error, $"Fehler beim Setzen des Pins: {ex.Message}");
+                return false;
             }
         }
 
-        public void WasserMarsch(PumpenIntervall intervall, out string message)
+        public int GetPumpenPinStatus()
         {
-            message = string.Empty;
-
             try
             {
-                this.StartEngine(intervall);
+                return WiringPi.DigitalRead(23);
             }
             catch (Exception ex)
             {
-                throw ex;
-            }
-        }
-
-        private void StartEngine(PumpenIntervall intervall)
-        {
-            // Öffnet den Pin und setzt ihn auf den Modus <Output>
-            this.OpenPinAndSetModeToOutput(this.PumpenPin);
-
-            // Setzt die Länge der Zeit, die die Pumpe laufen soll.
-            this.SetPumpenIntervall(intervall);
-
-            Controller.RegisterCallbackForPinValueChangedEvent(this.PumpenPin, PinEventTypes.Falling, this.PumpeWurdeAusgeschaltet);
-
-            // Create an AutoResetEvent to signal the timeout threshold in the
-            // timer callback has been reached.
-            var autoEvent = new AutoResetEvent(false);
-            //Timer pumpenTimer = new Timer(this.TimerBeended, autoEvent, 0, this.GetPumpenIntervall());
-
-            // Pumpen-Timer wird gestartet
-            Timer pumpenTimer = new Timer(this.TimerBeended, null, new TimeSpan(0, 0, 0), this.GetPumpenIntervall());
-            WiringPi.DigitalWrite(this.PumpenPin, 1);
-
-        }
-
-        private TimeSpan GetPumpenIntervall()
-        {
-            return this.PumpenIntervallTimeSpan;
-        }
-
-        public void TimerBeended(object state)
-        {
-            // Pumpe ausschalten
-            if (Controller.IsPinOpen(this.PumpenPin))
-            {
-                var mode = Controller.GetPinMode(this.PumpenPin);
-                if (mode != PinMode.Output)
-                {
-                    WiringPi.DigitalWrite(this.PumpenPin, 0);
-                    Controller.Write(this.PumpenPin, PinValue.Low);
-                    Console.WriteLine("Pumpe ausgeschalten");
-                    Console.WriteLine($"Pumpe lief <{this.GetPumpenIntervall().TotalSeconds}> Sekunden");
-                }
-            }
-        }
-
-        private void PumpeWurdeAusgeschaltet(object sender, PinValueChangedEventArgs pinValueChangedEventArgs)
-        {
-            // Pumpe wurde ausgeschalten Event
-            // Prüfen ob Pumpe ausgeschalten wurde
-
-            if (Controller.IsPinOpen(this.PumpenPin))
-            {
-                var mode = Controller.GetPinMode(this.PumpenPin);
-                if (mode != PinMode.Input)
-                {
-                    Controller.SetPinMode(this.PumpenPin, PinMode.Input);
-                    var value = WiringPi.DigitalRead(this.PumpenPin);
-                    if (value == 1)
-                    {
-                        Console.WriteLine("PumpenPin ist immernoch aktiv und Pumpe läuft");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Pumpe ausgeschaltet");
-                    }
-                }
+                this.Logger.WriteToFile(LogType.Error, $"Fehler beim Setzen des Pins: {ex.Message}");
+                return 1;
             }
         }
 
@@ -194,8 +162,44 @@ namespace MonitoreCore.Provider.DataProvider
             if (!Controller.IsPinOpen(pin))
             {
                 Controller.OpenPin(pin);
-                Controller.SetPinMode(pin, System.Device.Gpio.PinMode.Output);
+                Controller.SetPinMode(pin,PinMode.Output);
             }
+        }
+
+        private void PumpeAn()
+        {
+            Console.WriteLine($"{DateTime.Now}: (1) Pumpe wurde vom MainThread angestoßen");
+            new Task(() =>
+            {
+                Console.WriteLine($"{DateTime.Now}: (2) Pumpe wird von ausgelagerten Thread angeschalten");
+                WriteDigitalData(23, 1);
+                Thread.Sleep(5000);
+                this.PumpeAus();
+                Console.WriteLine($"{DateTime.Now}: (3) Pumpe wurde von ausgelagerten Thread ausgeschlten");
+
+            }).Start();
+
+            Console.WriteLine($"{DateTime.Now}: (4) MainThread läuft einfach weiter");
+        }
+
+        private void PumpeAus()
+        {
+            WriteDigitalData(23, 0);
+        }
+
+        public bool SetAutoMode(int value)
+        {
+            if (value == 1)
+            {
+                AutoMode = true;
+                MyTimer.Start();
+            }
+            else
+            {
+                AutoMode = false;
+                MyTimer.Stop();
+            }
+            return AutoMode;
         }
     }
 }
