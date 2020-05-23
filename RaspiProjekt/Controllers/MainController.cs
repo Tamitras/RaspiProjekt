@@ -17,7 +17,7 @@ namespace MonitoreCore.Controllers
     [ApiController]
     public class MainController : ControllerBase
     {
-        private RaspiProvider RaspiProvider { get; set; } = new RaspiProvider();
+        private static RaspiProvider RaspiProvider { get; set; } = new RaspiProvider();
         private Log Logger { get; set; } = new Log();
 
         private string GetAppVersion()
@@ -40,7 +40,7 @@ namespace MonitoreCore.Controllers
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(text);
 
-            this.Logger.Add(LogType.Info, text);
+            this.Logger.WriteToFile(LogType.Info, text);
 
             return text;
         }
@@ -75,13 +75,14 @@ namespace MonitoreCore.Controllers
         [ActionName("GetChannel")]
         public string GetChannel(int channel)
         {
-            var value = this.RaspiProvider.GetAnalogDataFromSPI(channel);
+            // Liefert Den Analogen Wert des Channels
+            var value = RaspiProvider.GetAnalogDataFromSPI(channel);
 
-            this.Logger.WriteToConsole("Ausgelesener Wert(LichtSensor): ", value);
-            this.Logger.Add(LogType.Info, $"Channel {channel} wurde ausgelesen. Wert: {value}");
+            this.Logger.WriteToConsole("Ausgelesener Wert: ", value);
+
+            this.Logger.WriteToFile(LogType.Info, $"Channel {channel} wurde ausgelesen. Wert: {value}");
 
             return value.ToString();
-
         }
 
         [HttpGet("[controller]/[action]")]
@@ -92,37 +93,45 @@ namespace MonitoreCore.Controllers
 
             try
             {
-                ret = this.RaspiProvider.WriteDigitalData(pin, value);
+                ret = RaspiProvider.WriteDigitalData(pin, value);
             }
             catch (Exception ex)
             {
-                this.Logger.WriteToConsole($"Led-Status fehlerhaft");
                 Console.WriteLine($"Fehler: {ex}");
             }
             finally
             {
                 this.Logger.WriteToConsole($"Led-Status Pin: {pin}", value);
-                this.Logger.Add(Enum.LogType.Info, $"Gpio Pin {pin} wurde angesprochen. Wert: {value}");
+
+                this.Logger.WriteToFile(LogType.Info, $"Gpio Pin {pin} wurde angesprochen. Wert: {value}");
             }
 
             return ret;
         }
 
         [HttpGet("[controller]/[action]")]
-        [ActionName("SetAutomaticModePump")]
-        public bool SetAutomaticModePump(int value)
+        [ActionName("SetAutoMode")]
+        public bool SetAutoMode(int value)
         {
-            var ret = default(bool);
+            bool autoModeStatus = RaspiProvider.SetAutoMode(value);
+            return autoModeStatus;
+        }
+
+        [HttpGet("[controller]/[action]")]
+        [ActionName("GetGPIO")]
+        public int GetGPIO()
+        {
+            var ret = default(int);
 
             try
             {
-                //ret = this.RaspiProvider.WriteDigitalData(pin, value);
+                ret = RaspiProvider.GetPumpenPinStatus();
             }
             catch (Exception ex)
             {
-                this.Logger.WriteToConsole($"Fehler: {ex.Message}");
+                Console.WriteLine($"Fehler: {ex}");
             }
-
+            
             return ret;
         }
     }

@@ -40,7 +40,7 @@ namespace MonitoreCore.Debug
             Console.WriteLine($"{text} {value}");
         }
 
-        public void Add(LogType logType, string msg)
+        public void WriteToFile(LogType logType, string msg)
         {
             var basePath = "/home/pi/Logs/";
             var logFilePath = basePath + "Log";
@@ -49,6 +49,8 @@ namespace MonitoreCore.Debug
 
             try
             {
+                //TODO: Muss überarbeitet werden
+
                 // Nicht jeden Log in das selbe File schreiben
                 // 1. Liefere alle Files im Ordner ("/home/pi/Logs")
                 // 2. Liefere das aktuelleste File

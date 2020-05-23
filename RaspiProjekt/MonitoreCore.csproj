@@ -22,8 +22,8 @@
     <RemotePassword>Kleinprojekt</RemotePassword>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.1.2</Version>
-    <AssemblyVersion>1.1.2.3</AssemblyVersion>
-    <FileVersion>1.1.2.3</FileVersion>
+    <AssemblyVersion>1.1.2.7</AssemblyVersion>
+    <FileVersion>1.1.2.7</FileVersion>
   </PropertyGroup>
 
   <Target Condition="$(BuildingInsideSshDeploy) == '' and $(RuntimeIdentifier) == 'linux-arm'" Name="PostBuild" AfterTargets="PostBuildEvent">

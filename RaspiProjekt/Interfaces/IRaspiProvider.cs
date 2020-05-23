@@ -1,9 +1,4 @@
-﻿using MonitoreCore.Enum;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MonitoreCore.Interfaces
+﻿namespace MonitoreCore.Interfaces
 {
     public interface IRaspiProvider
     {
@@ -27,6 +22,6 @@ namespace MonitoreCore.Interfaces
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        bool SetAutomaticModePump(int value);
+        bool SetAutoMode(int value);
     }
 }
